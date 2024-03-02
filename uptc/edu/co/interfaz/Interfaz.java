@@ -11,11 +11,7 @@ public class Interfaz  extends JFrame{
         private JButton botonEstatico,botonDinamico;
 
         private   GridBagConstraints gbc;
-
-    private JMenuBar barraMenu;
-        private JMenu menuOpciones;
-        private JMenuItem opcion1,opcion2;
-
+        
         public Interfaz() {
             inicializarVentana();
             inicializarComponentes();
