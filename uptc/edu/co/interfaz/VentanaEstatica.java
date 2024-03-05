@@ -54,13 +54,13 @@ public class VentanaEstatica extends JFrame {
             public void run() {
                 while (isVisible()) {
                     asignarMemoria();
-                    actualizarEstadoMemoria();
                     try {
                         // Esperar 2 segundos antes de la próxima simulación
                         Thread.sleep(2000);
                     } catch (InterruptedException ex) {
                         ex.printStackTrace();
                     }
+                    actualizarEstadoMemoria();
                 }
             }
         });
@@ -74,7 +74,7 @@ public class VentanaEstatica extends JFrame {
         int blockSize = 128; // tamanno de cada bloque en bytes
         for (int i = 0; i < MAX_MEMORIA; i += blockSize) {
         	int tiempoDeVida = random.nextInt(5) + 1;
-            bloquesMemoria.add(new BloqueMemoria(i, blockSize, false, tiempoDeVida));
+            bloquesMemoria.add(new BloqueMemoria(i, blockSize, false));
             System.out.println(tiempoDeVida + " creacion");
         }
     }
@@ -89,16 +89,18 @@ public class VentanaEstatica extends JFrame {
         	int tamanoProceso = random.nextInt(128) + 1;
             if (!bloque.isAsignado() && bloque.gettamanno() >= tamanoProceso) {
                 // Bloque de memoria disponible, asignar al proceso
-                Proceso proceso = new Proceso(tamanoProceso);
+                Proceso proceso = new Proceso(tamanoProceso, random.nextInt(5)+1);
                 bloque.setProceso(proceso);
                 bloque.setAsignado(true);
 //                break;
-            } else if (bloque.getTiempoRestante() == 0) {
-                Proceso proceso = new Proceso(tamanoProceso);
+            } else if (bloque.getProceso().getTiempoRestante() == 0){
+            	bloque.getProceso().setTamano(0);
+            	bloque.setAsignado(false);
+            } else if (bloque.getProceso().getTiempoRestante() == -1) {
+                Proceso proceso = new Proceso(tamanoProceso, random.nextInt(5)+1);
                 bloque.setProceso(proceso);
-                bloque.setTiempoRestante((int) (Math.random()*5)+1);
                 bloque.setAsignado(true);
-            }
+            } 
         }
     }
 
@@ -128,19 +130,15 @@ public class VentanaEstatica extends JFrame {
             JPanel bloquePanel = new JPanel();
             bloquePanel.setPreferredSize(new Dimension(80, 80));
 
-            int tiempoRestante = bloque.getTiempoRestante();
             
-            if (tiempoRestante<=0) {
-            	bloque.setAsignado(false);
-            }
-            
-            System.out.println(tiempoRestante);
-            
+            // Bloque asignado
             if (bloque.isAsignado()) {
-
-            	bloque.setTiempoRestante(tiempoRestante-1);
             	
-            	// Bloque asignado
+                int tiempoRestante = bloque.getProceso().getTiempoRestante();
+                bloque.getProceso().setTiempoRestante(tiempoRestante-1);
+                
+                System.out.println(tiempoRestante);
+            	
                 int tamanoOcupado = bloque.getProceso().getTamano();
                 int tamanoLibre = bloque.gettamanno() - tamanoOcupado;
 
@@ -152,7 +150,7 @@ public class VentanaEstatica extends JFrame {
                 ocupadoPanel.setPreferredSize(new Dimension(80, (tamanoOcupado * 80) / bloque.gettamanno()));
                 ocupadoPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
                 ocupadoPanel.add(ocupadoLabel);
-
+                
                 JPanel librePanel = new JPanel();
                 librePanel.setBackground(Color.GREEN);
                 librePanel.setPreferredSize(new Dimension(80, (tamanoLibre * 80) / bloque.gettamanno()));
@@ -170,6 +168,7 @@ public class VentanaEstatica extends JFrame {
                 bloquePanel.setBackground(Color.GREEN);
                 bloquePanel.setLayout(new BorderLayout());
                 bloquePanel.add(libreLabel, BorderLayout.CENTER);
+
             }
 
             memoriaPanel.add(bloquePanel);
