@@ -2,22 +2,24 @@ package uptc.edu.co.controller;
 
 public class BloqueMemoria {
     private int inicio;
-    private int tamaño;
+    private int tamanno;
     private boolean asignado;
     private Proceso proceso;
+    private int tiempoRestante;
 
-    public BloqueMemoria(int inicio, int tamaño, boolean asignado) {
+    public BloqueMemoria(int inicio, int tamanno, boolean asignado, int tiempoRestante) {
         this.inicio = inicio;
-        this.tamaño = tamaño;
+        this.tamanno = tamanno;
         this.asignado = asignado;
+        this.tiempoRestante = tiempoRestante;
     }
 
     public int getInicio() {
         return inicio;
     }
 
-    public int getTamaño() {
-        return tamaño;
+    public int gettamanno() {
+        return tamanno;
     }
 
     public boolean isAsignado() {
@@ -35,4 +37,13 @@ public class BloqueMemoria {
     public void setProceso(Proceso proceso) {
         this.proceso = proceso;
     }
+
+	public int getTiempoRestante() {
+		return tiempoRestante;
+	}
+
+	public void setTiempoRestante(int tiempoRestante) {
+		this.tiempoRestante = tiempoRestante;
+	}
+    
 }

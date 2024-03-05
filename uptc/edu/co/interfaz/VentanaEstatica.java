@@ -13,7 +13,7 @@ import java.util.Random;
 
 public class VentanaEstatica extends JFrame {
 
-    private static final int MAX_MEMORIA = 1024; // Tamaño máximo de memoria en bytes
+    private static final int MAX_MEMORIA = 1024; // tamanno máximo de memoria en bytes
     private static java.util.List<BloqueMemoria> bloquesMemoria = new ArrayList<>();
     private static java.util.List<Proceso> procesos = new ArrayList<>();
     private JPanel memoriaPanel;
@@ -70,9 +70,12 @@ public class VentanaEstatica extends JFrame {
 
     private void inicializarMemoria() {
         // Inicializar la memoria con bloques libres
-        int blockSize = 128; // Tamaño de cada bloque en bytes
+    	Random random = new Random();
+        int blockSize = 128; // tamanno de cada bloque en bytes
         for (int i = 0; i < MAX_MEMORIA; i += blockSize) {
-            bloquesMemoria.add(new BloqueMemoria(i, blockSize, false));
+        	int tiempoDeVida = random.nextInt(5) + 1;
+            bloquesMemoria.add(new BloqueMemoria(i, blockSize, false, tiempoDeVida));
+            System.out.println(tiempoDeVida + " creacion");
         }
     }
 
@@ -80,16 +83,21 @@ public class VentanaEstatica extends JFrame {
         // Simulación de asignación de memoria estática
         Random random = new Random();
 
-        // Generar tamaño aleatorio para el nuevo proceso
-        int tamanoProceso = random.nextInt(128) + 1;
 
         for (BloqueMemoria bloque : bloquesMemoria) {
-            if (!bloque.isAsignado() && bloque.getTamaño() >= tamanoProceso) {
+        	// Generar tamanno aleatorio para el nuevo proceso
+        	int tamanoProceso = random.nextInt(128) + 1;
+            if (!bloque.isAsignado() && bloque.gettamanno() >= tamanoProceso) {
                 // Bloque de memoria disponible, asignar al proceso
                 Proceso proceso = new Proceso(tamanoProceso);
                 bloque.setProceso(proceso);
                 bloque.setAsignado(true);
-                break;
+//                break;
+            } else if (bloque.getTiempoRestante() == 0) {
+                Proceso proceso = new Proceso(tamanoProceso);
+                bloque.setProceso(proceso);
+                bloque.setTiempoRestante((int) (Math.random()*5)+1);
+                bloque.setAsignado(true);
             }
         }
     }
@@ -120,32 +128,44 @@ public class VentanaEstatica extends JFrame {
             JPanel bloquePanel = new JPanel();
             bloquePanel.setPreferredSize(new Dimension(80, 80));
 
+            int tiempoRestante = bloque.getTiempoRestante();
+            
+            if (tiempoRestante<=0) {
+            	bloque.setAsignado(false);
+            }
+            
+            System.out.println(tiempoRestante);
+            
             if (bloque.isAsignado()) {
-                // Bloque asignado
+
+            	bloque.setTiempoRestante(tiempoRestante-1);
+            	
+            	// Bloque asignado
                 int tamanoOcupado = bloque.getProceso().getTamano();
-                int tamanoLibre = bloque.getTamaño() - tamanoOcupado;
+                int tamanoLibre = bloque.gettamanno() - tamanoOcupado;
 
                 JLabel ocupadoLabel = new JLabel("O: " + tamanoOcupado);
                 JLabel libreLabel = new JLabel("L: " + tamanoLibre);
 
                 JPanel ocupadoPanel = new JPanel();
                 ocupadoPanel.setBackground(Color.RED);
-                ocupadoPanel.setPreferredSize(new Dimension(80, (tamanoOcupado * 80) / bloque.getTamaño()));
+                ocupadoPanel.setPreferredSize(new Dimension(80, (tamanoOcupado * 80) / bloque.gettamanno()));
                 ocupadoPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
                 ocupadoPanel.add(ocupadoLabel);
 
                 JPanel librePanel = new JPanel();
                 librePanel.setBackground(Color.GREEN);
-                librePanel.setPreferredSize(new Dimension(80, (tamanoLibre * 80) / bloque.getTamaño()));
+                librePanel.setPreferredSize(new Dimension(80, (tamanoLibre * 80) / bloque.gettamanno()));
                 librePanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
                 librePanel.add(libreLabel);
 
                 bloquePanel.setLayout(new BorderLayout());
                 bloquePanel.add(ocupadoPanel, BorderLayout.NORTH);
                 bloquePanel.add(librePanel, BorderLayout.SOUTH);
+                
             } else {
                 // Bloque libre
-                JLabel libreLabel = new JLabel("L: " + bloque.getTamaño());
+                JLabel libreLabel = new JLabel("L: " + bloque.gettamanno());
 
                 bloquePanel.setBackground(Color.GREEN);
                 bloquePanel.setLayout(new BorderLayout());
@@ -154,7 +174,8 @@ public class VentanaEstatica extends JFrame {
 
             memoriaPanel.add(bloquePanel);
         }
-
+        
+        System.out.println("qqwe");
         memoriaPanel.revalidate();
         memoriaPanel.repaint();
     }
