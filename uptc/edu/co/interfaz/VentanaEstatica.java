@@ -20,19 +20,12 @@ public class VentanaEstatica extends JFrame {
 
     public VentanaEstatica() {
 
-        JButton liberarButton = new JButton("Liberar Memoria");
         memoriaPanel = new JPanel();
 
-        liberarButton.addActionListener(new ActionListener(){
-            @Override
-            public void actionPerformed(ActionEvent event) {
-                liberarMemoriaAleatoria();
-                actualizarEstadoMemoria();
-            }
-        });
+      
 
         JPanel panel = new JPanel();
-        panel.add(liberarButton);
+        
 
         JScrollPane scrollPane = new JScrollPane(memoriaPanel);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
@@ -53,13 +46,14 @@ public class VentanaEstatica extends JFrame {
             @Override
             public void run() {
                 while (isVisible()) {
-                    asignarMemoria();
+                	liberarMemoria();
                     try {
                         // Esperar 2 segundos antes de la próxima simulación
                         Thread.sleep(2000);
                     } catch (InterruptedException ex) {
                         ex.printStackTrace();
                     }
+                    asignarMemoria();
                     actualizarEstadoMemoria();
                 }
             }
@@ -93,35 +87,27 @@ public class VentanaEstatica extends JFrame {
                 bloque.setProceso(proceso);
                 bloque.setAsignado(true);
                 break;
-            } else if (bloque.getProceso().getTiempoRestante() == 0){
-            	bloque.getProceso().setTamano(0);
-            	bloque.setAsignado(false);
-            } else if (bloque.getProceso().getTiempoRestante() <= -1) {
-                Proceso proceso = new Proceso(tamanoProceso, random.nextInt(5)+1);
-                bloque.setProceso(proceso);
-                bloque.setAsignado(true);
             } 
         }
     }
+    
+    private void liberarMemoria() {
+    	int tamanoProceso = (int) (Math.random()*128)+1;
 
-    private void liberarMemoriaAleatoria() {
-        // Simulación de liberación de memoria estática aleatoria
-        List<BloqueMemoria> bloquesOcupados = new ArrayList<>();
-
-        for (BloqueMemoria bloque : bloquesMemoria) {
-            if (bloque.isAsignado()) {
-                bloquesOcupados.add(bloque);
-            }
-        }
-
-        if (!bloquesOcupados.isEmpty()) {
-            // Elegir aleatoriamente un bloque ocupado para liberar
-            Random random = new Random();
-            BloqueMemoria bloqueALiberar = bloquesOcupados.get(random.nextInt(bloquesOcupados.size()));
-            bloqueALiberar.setAsignado(false);
-            bloqueALiberar.setProceso(null);
-        }
+    	for (BloqueMemoria bloque : bloquesMemoria) {
+    		if (bloque.isAsignado()) {
+	    		if (bloque.getProceso().getTiempoRestante() == 0){
+		        	bloque.getProceso().setTamano(0);
+		        	
+		        } else if (bloque.getProceso().getTiempoRestante() == -1) {
+		            Proceso proceso = new Proceso(tamanoProceso,(int) (Math.random()*5)+1);
+		            bloque.setProceso(proceso);
+		            bloque.setAsignado(true);
+		        }
+	        } 
+    	}
     }
+
     private void actualizarEstadoMemoria() {
         // Actualizar el estado de la memoria en el panel
         memoriaPanel.removeAll();
