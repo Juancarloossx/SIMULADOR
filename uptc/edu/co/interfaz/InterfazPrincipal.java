@@ -2,8 +2,10 @@ package uptc.edu.co.interfaz;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-public class Interfaz  extends JFrame{
+public class InterfazPrincipal extends JFrame{
 
         private JFrame marco;
         private JPanel panelPrincipal;
@@ -11,8 +13,8 @@ public class Interfaz  extends JFrame{
         private JButton botonEstatico,botonDinamico;
 
         private   GridBagConstraints gbc;
-        
-        public Interfaz() {
+
+        public InterfazPrincipal() {
             inicializarVentana();
             inicializarComponentes();
             agregarComponentes();
@@ -42,6 +44,7 @@ public class Interfaz  extends JFrame{
             botonEstatico.setBackground(new Color(0,0,0));
             botonEstatico.setForeground(Color.WHITE);
             botonEstatico.setPreferredSize(new Dimension(120, 30));
+            botonEstatico.addActionListener(listener);
 
             botonDinamico = new JButton("Dinamico");
             botonDinamico.setBackground(new Color(0,0,0));
@@ -79,6 +82,12 @@ public class Interfaz  extends JFrame{
             gbc.gridy = 4;
             panelPrincipal.add(botonEstatico, gbc);
         }
+        ActionListener listener = new ActionListener(){
+        @Override
+        public void actionPerformed(ActionEvent event) {
+            VentanaEstatica v = new VentanaEstatica();
+        }
+    };
 
 
 

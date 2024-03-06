@@ -1,11 +1,10 @@
 package uptc.edu.co.model;
 
-import uptc.edu.co.interfaz.Interfaz;
+import uptc.edu.co.interfaz.InterfazPrincipal;
+import uptc.edu.co.interfaz.VentanaEstatica;
 
 public class Main {
     public static void main(String[] args) {
-        Interfaz interfaz = new Interfaz();
-
-        interfaz.setVisible(true);
+       InterfazPrincipal interfazPrincipal = new InterfazPrincipal();
     }
 }
