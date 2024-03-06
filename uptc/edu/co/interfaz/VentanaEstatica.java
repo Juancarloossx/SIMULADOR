@@ -75,12 +75,12 @@ public class VentanaEstatica extends JFrame {
         for (int i = 0; i < MAX_MEMORIA; i += blockSize) {
         	int tiempoDeVida = random.nextInt(5) + 1;
             bloquesMemoria.add(new BloqueMemoria(i, blockSize, false));
-            System.out.println(tiempoDeVida + " creacion");
         }
     }
 
     private void asignarMemoria() {
-        // Simulación de asignación de memoria estática
+        // Simulación de asignación de memoria est
+    	
         Random random = new Random();
 
 
@@ -92,11 +92,11 @@ public class VentanaEstatica extends JFrame {
                 Proceso proceso = new Proceso(tamanoProceso, random.nextInt(5)+1);
                 bloque.setProceso(proceso);
                 bloque.setAsignado(true);
-//                break;
+                break;
             } else if (bloque.getProceso().getTiempoRestante() == 0){
             	bloque.getProceso().setTamano(0);
             	bloque.setAsignado(false);
-            } else if (bloque.getProceso().getTiempoRestante() == -1) {
+            } else if (bloque.getProceso().getTiempoRestante() <= -1) {
                 Proceso proceso = new Proceso(tamanoProceso, random.nextInt(5)+1);
                 bloque.setProceso(proceso);
                 bloque.setAsignado(true);
@@ -136,9 +136,7 @@ public class VentanaEstatica extends JFrame {
             	
                 int tiempoRestante = bloque.getProceso().getTiempoRestante();
                 bloque.getProceso().setTiempoRestante(tiempoRestante-1);
-                
-                System.out.println(tiempoRestante);
-            	
+                            	
                 int tamanoOcupado = bloque.getProceso().getTamano();
                 int tamanoLibre = bloque.gettamanno() - tamanoOcupado;
 
@@ -174,7 +172,6 @@ public class VentanaEstatica extends JFrame {
             memoriaPanel.add(bloquePanel);
         }
         
-        System.out.println("qqwe");
         memoriaPanel.revalidate();
         memoriaPanel.repaint();
     }
