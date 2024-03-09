@@ -50,6 +50,7 @@ public class InterfazPrincipal extends JFrame{
             botonDinamico.setBackground(new Color(0,0,0));
             botonDinamico.setForeground(Color.WHITE);
             botonDinamico.setPreferredSize(new Dimension(120, 30));
+            botonDinamico.addActionListener(listener2);
 
             panelPrincipal.setLayout(new GridBagLayout());
         }
@@ -82,10 +83,19 @@ public class InterfazPrincipal extends JFrame{
             gbc.gridy = 4;
             panelPrincipal.add(botonEstatico, gbc);
         }
+
+
         ActionListener listener = new ActionListener(){
         @Override
         public void actionPerformed(ActionEvent event) {
             VentanaEstatica v = new VentanaEstatica();
+        }
+    };
+
+    ActionListener listener2 = new ActionListener(){
+        @Override
+        public void actionPerformed(ActionEvent event) {
+            VentanaDinamica v = new VentanaDinamica();
         }
     };
 
