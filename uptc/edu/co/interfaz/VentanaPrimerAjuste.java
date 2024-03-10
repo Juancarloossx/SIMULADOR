@@ -13,6 +13,9 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class VentanaPrimerAjuste extends JFrame {
 
@@ -24,7 +27,8 @@ public class VentanaPrimerAjuste extends JFrame {
 
     private JPanel memoriaPanel;
     private JScrollPane scrollPane;
-    private Thread simulacionThread;
+    private ScheduledExecutorService scheduler;
+    private JButton reiniciarButton;
 
     public VentanaPrimerAjuste() {
         inicializarMemoria();
@@ -32,26 +36,14 @@ public class VentanaPrimerAjuste extends JFrame {
         asignarMemoriaPrimerAjuste();
         actualizarEstadoMemoria();
 
-        setSize(800, 150); // Tamaño ajustado
+        setSize(800, 150);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(true);
         setVisible(true);
 
-        simulacionThread = new Thread(() -> {
-            try {
-                while (!Thread.currentThread().isInterrupted() && isVisible()) {
-                    liberarMemoria();
-                    Thread.sleep(2000);
-                    asignarMemoriaPrimerAjuste();
-                    actualizarEstadoMemoria();
-                }
-            } catch (InterruptedException ex) {
-                Thread.currentThread().interrupt();
-            }
-        });
-
-        simulacionThread.start();
+        scheduler = Executors.newSingleThreadScheduledExecutor();
+        scheduler.scheduleAtFixedRate(this::asignarMemoriaPeriodicamente, 0, 3, TimeUnit.SECONDS);
 
         addWindowListener(new WindowAdapter() {
             @Override
@@ -91,7 +83,7 @@ public class VentanaPrimerAjuste extends JFrame {
                         BloqueMemoria nuevoBloque = new BloqueMemoria(
                                 bloque.getInicio() + tamanoProceso,
                                 bloque.gettamanno() - tamanoProceso,
-                                false // Corrección aquí
+                                false
                         );
                         BloqueMemoria bloqueAsignado = new BloqueMemoria(bloque.getInicio(), tamanoProceso, true);
 
@@ -113,10 +105,20 @@ public class VentanaPrimerAjuste extends JFrame {
         }
     }
 
+    private void asignarMemoriaPeriodicamente() {
+        if (!Thread.currentThread().isInterrupted() && isVisible()) {
+            liberarMemoria();
+            asignarMemoriaPrimerAjuste();
+            SwingUtilities.invokeLater(() -> {
+                actualizarEstadoMemoria();
+            });
+        }
+    }
+
     private void actualizarEstadoMemoria() {
         memoriaPanel.removeAll();
 
-        int anchoTotal = 0; // Variable para rastrear el ancho total de los bloques
+        int anchoTotal = 0;
 
         for (BloqueMemoria bloque : bloquesMemoria) {
             JPanel bloquePanel = new JPanel();
@@ -181,17 +183,25 @@ public class VentanaPrimerAjuste extends JFrame {
             contenedorBloque.add(bloquePanel, BorderLayout.NORTH);
             contenedorBloque.add(instanciasPanel, BorderLayout.SOUTH);
 
-            // Agregar el bloque al panel
             memoriaPanel.add(contenedorBloque);
 
-            // Actualizar el ancho total con el ancho del bloque actual
             anchoTotal += bloquePanel.getPreferredSize().width;
         }
 
-        // Establecer el tamaño del panel de memoria para permitir desplazamiento horizontal
+        // Agregar botón "Reiniciar"
+        reiniciarButton = new JButton("Reiniciar");
+        reiniciarButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                reiniciarVentana();
+                VentanaPrimerAjuste.this.dispose();  // Cerrar la ventana actual
+                new VentanaPrimerAjuste();  // Abrir una nueva instancia de VentanaPrimerAjuste
+            }
+        });
+        memoriaPanel.add(reiniciarButton);
+
         memoriaPanel.setPreferredSize(new Dimension(anchoTotal, memoriaPanel.getPreferredSize().height));
 
-        // Actualizar la interfaz
         memoriaPanel.revalidate();
         memoriaPanel.repaint();
     }
@@ -231,8 +241,8 @@ public class VentanaPrimerAjuste extends JFrame {
     }
 
     private void reiniciarVentana() {
-        if (simulacionThread != null && simulacionThread.isAlive()) {
-            simulacionThread.interrupt();
+        if (scheduler != null && !scheduler.isShutdown()) {
+            scheduler.shutdown();
         }
 
         inicializarMemoria();

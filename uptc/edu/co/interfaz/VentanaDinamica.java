@@ -7,23 +7,23 @@ import java.awt.event.ActionListener;
 
 public class VentanaDinamica extends JFrame {
 
-    private JButton btnPrimerAjuste,btnPeorAjuste,btnMejorAjuste;
-
-
     public VentanaDinamica() {
         setTitle("Configuración de Ajustes");
         setSize(300, 150);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setResizable(false);
 
         // Crear paneles y disposición
         JPanel panelPrincipal = new JPanel();
-        panelPrincipal.setLayout(new GridLayout(3, 1, 0, 10));
+        panelPrincipal.setLayout(new GridLayout(3, 1, 10, 10));
+        panelPrincipal.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        panelPrincipal.setBackground(new Color(240, 240, 240));
 
         // Crear botones
-        JButton btnPrimerAjuste = new JButton("Primer Ajuste");
-        JButton btnPeorAjuste = new JButton("Peor Ajuste");
-        JButton btnMejorAjuste = new JButton("Mejor Ajuste");
+        JButton btnPrimerAjuste = crearBoton("Primer Ajuste");
+        JButton btnPeorAjuste = crearBoton("Peor Ajuste");
+        JButton btnMejorAjuste = crearBoton("Mejor Ajuste");
 
         // Agregar ActionListener a cada botón
         btnPrimerAjuste.addActionListener(new ActionListener() {
@@ -60,5 +60,17 @@ public class VentanaDinamica extends JFrame {
 
         setVisible(true);
     }
-}
 
+    private JButton crearBoton(String texto) {
+        JButton boton = new JButton(texto);
+        boton.setBackground(new Color(0, 102, 204));
+        boton.setForeground(Color.WHITE);
+        boton.setFocusPainted(false);
+        boton.setFont(new Font("Arial", Font.PLAIN, 12)); // Tamaño de la fuente reducido
+        return boton;
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new VentanaDinamica());
+    }
+}
