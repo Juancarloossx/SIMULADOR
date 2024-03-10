@@ -91,7 +91,7 @@ public class VentanaPrimerAjuste extends JFrame {
                         BloqueMemoria nuevoBloque = new BloqueMemoria(
                                 bloque.getInicio() + tamanoProceso,
                                 bloque.gettamanno() - tamanoProceso,
-                                false
+                                false // Corrección aquí
                         );
                         BloqueMemoria bloqueAsignado = new BloqueMemoria(bloque.getInicio(), tamanoProceso, true);
 
