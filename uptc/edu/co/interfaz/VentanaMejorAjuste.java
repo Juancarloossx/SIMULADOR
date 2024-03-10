@@ -17,7 +17,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class VentanaPrimerAjuste extends JFrame {
+public class VentanaMejorAjuste extends JFrame {
 
     private static final int MAX_MEMORIA = 1024;
     private static final int LIMITE_PROCESOS = 100;
@@ -30,10 +30,10 @@ public class VentanaPrimerAjuste extends JFrame {
     private ScheduledExecutorService scheduler;
     private JButton reiniciarButton;
 
-    public VentanaPrimerAjuste() {
+    public VentanaMejorAjuste() {
         inicializarMemoria();
         inicializarInterfaz();
-        asignarMemoriaPrimerAjuste();
+        asignarMemoriaMejorAjuste();
         actualizarEstadoMemoria();
 
         setSize(800, 150);
@@ -58,15 +58,16 @@ public class VentanaPrimerAjuste extends JFrame {
         bloquesMemoria.add(new BloqueMemoria(0, MAX_MEMORIA, false));
     }
 
-    private void asignarMemoriaPrimerAjuste() {
+    private void asignarMemoriaMejorAjuste() {
         Random random = new Random();
 
         if (procesosCreados < LIMITE_PROCESOS) {
             int tamanoProceso = random.nextInt(128) + 1;
 
-            bloquesMemoria.sort(Comparator.comparingInt(BloqueMemoria::getInicio));
-
-            for (BloqueMemoria bloque : bloquesMemoria) {
+            List<BloqueMemoria> listaBloques = bloquesMemoria;
+            listaBloques.sort(Comparator.comparingInt(BloqueMemoria::gettamanno)); 
+            
+            for (BloqueMemoria bloque : listaBloques) {
                 if (!bloque.isAsignado() && bloque.gettamanno() >= tamanoProceso) {
                     if (bloque.gettamanno() == tamanoProceso) {
                         Proceso proceso = new Proceso("Proceso:" + letraActual, tamanoProceso, random.nextInt(7) + 4);
@@ -109,7 +110,7 @@ public class VentanaPrimerAjuste extends JFrame {
     private void asignarMemoriaPeriodicamente() {
         if (!Thread.currentThread().isInterrupted() && isVisible()) {
             liberarMemoria();
-            asignarMemoriaPrimerAjuste();
+            asignarMemoriaMejorAjuste();
             SwingUtilities.invokeLater(() -> {
                 actualizarEstadoMemoria();
             });
@@ -195,8 +196,8 @@ public class VentanaPrimerAjuste extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 reiniciarVentana();
-                VentanaPrimerAjuste.this.dispose();  // Cerrar la ventana actual
-                new VentanaPrimerAjuste();  // Abrir una nueva instancia de VentanaPrimerAjuste
+                VentanaMejorAjuste.this.dispose();  // Cerrar la ventana actual
+                new VentanaMejorAjuste();  // Abrir una nueva instancia de VentanaPrimerAjuste
             }
         });
         memoriaPanel.add(reiniciarButton);
@@ -208,7 +209,6 @@ public class VentanaPrimerAjuste extends JFrame {
     }
 
     private void liberarMemoria() {
-        int tamanoProceso = (int) (Math.random() * 128) + 1;
 
         for (BloqueMemoria bloque : bloquesMemoria) {
             if (bloque.isAsignado() && bloque.getProceso().getTiempoRestante() == 0) {
@@ -247,7 +247,7 @@ public class VentanaPrimerAjuste extends JFrame {
         }
 
         inicializarMemoria();
-        asignarMemoriaPrimerAjuste();
+        asignarMemoriaMejorAjuste();
         actualizarEstadoMemoria();
         procesosCreados = 0;
         letraActual = 'A';
@@ -261,6 +261,6 @@ public class VentanaPrimerAjuste extends JFrame {
     }
 
     public static void main(String[] args) {
-        new VentanaPrimerAjuste();
+        new VentanaMejorAjuste();
     }
 }

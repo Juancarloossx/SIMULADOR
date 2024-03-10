@@ -38,7 +38,7 @@ public class VentanaDinamica extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Lógica para el peor ajuste
-                JOptionPane.showMessageDialog(null, "Se seleccionó Peor Ajuste");
+                VentanaPeorAjuste ventanaPeorAjuste = new VentanaPeorAjuste();
             }
         });
 
@@ -46,7 +46,7 @@ public class VentanaDinamica extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Lógica para el mejor ajuste
-                JOptionPane.showMessageDialog(null, "Se seleccionó Mejor Ajuste");
+                VentanaMejorAjuste ventanaMejorAjuste = new VentanaMejorAjuste();
             }
         });
 
