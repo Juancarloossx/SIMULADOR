@@ -36,14 +36,15 @@ public class VentanaMejorAjuste extends JFrame {
         asignarMemoriaMejorAjuste();
         actualizarEstadoMemoria();
 
-        setSize(800, 150);
+        setSize(1500, 350);
+        setTitle("Mejor Ajuste");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(true);
         setVisible(true);
 
         scheduler = Executors.newSingleThreadScheduledExecutor();
-        scheduler.scheduleAtFixedRate(this::asignarMemoriaPeriodicamente, 0, 3, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(this::asignarMemoriaPeriodicamente, 0, 2, TimeUnit.SECONDS);
 
         addWindowListener(new WindowAdapter() {
             @Override
@@ -110,10 +111,16 @@ public class VentanaMejorAjuste extends JFrame {
     private void asignarMemoriaPeriodicamente() {
         if (!Thread.currentThread().isInterrupted() && isVisible()) {
             liberarMemoria();
-            asignarMemoriaMejorAjuste();
             SwingUtilities.invokeLater(() -> {
-                actualizarEstadoMemoria();
+            	actualizarEstadoMemoria();
             });
+            try {
+            	Thread.sleep(2000);
+            } catch (InterruptedException e) {
+            	// TODO Auto-generated catch block
+            	e.printStackTrace();
+            }
+            asignarMemoriaMejorAjuste();
         }
     }
 
