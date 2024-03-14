@@ -24,6 +24,7 @@ public class VentanaEstatica extends JFrame {
     private int procesosCreados = 0; // Contador de procesos creados
 
     Thread simulacionThread;
+    private List<String> procesosAsignadosEnInterfaz = new ArrayList<>();
 
     public VentanaEstatica() {
 
@@ -122,7 +123,7 @@ public class VentanaEstatica extends JFrame {
                 JLabel instanciasLabel = new JLabel("instancias: " + tiempoRestante); // Nueva etiqueta
                 JLabel nombreProcesoLabel = new JLabel(nombre);
 
-
+                procesosAsignadosEnInterfaz.add(nombre);
                 JPanel ocupadoPanel = new JPanel();
                 ocupadoPanel.setBackground(Color.RED);
                 ocupadoPanel.setPreferredSize(new Dimension(80, (tamanoOcupado * 80) / bloque.gettamanno()));
@@ -161,6 +162,7 @@ public class VentanaEstatica extends JFrame {
             memoriaPanel.add(contenedorBloque);
         }
         agregarBotonDetener();
+
         memoriaPanel.revalidate();
         memoriaPanel.repaint();
 
@@ -201,6 +203,8 @@ public class VentanaEstatica extends JFrame {
                     Proceso proceso = new Proceso("Proceso:" + letraActual, tamanoProceso, random.nextInt(7) + 4);
                     bloque.setProceso(proceso);
                     bloque.setAsignado(true);
+
+
 
                     letraActual++;
                     if (letraActual > 'Z') {
@@ -247,13 +251,16 @@ public class VentanaEstatica extends JFrame {
     private int calcularFragmentacionInterna() {
         int fragmentacionInterna = 0;
         for (BloqueMemoria bloque : bloquesMemoria) {
-            if (bloque.isAsignado()) {
+            if (bloque.isAsignado()&& procesosAsignadosEnInterfaz.contains(bloque.getProceso().getNombre())) {
                 int tamanoLibre = bloque.gettamanno() - bloque.getProceso().getTamano();
                 fragmentacionInterna += tamanoLibre;
             }
         }
         return fragmentacionInterna;
     }
+
+
+
 
 
 
