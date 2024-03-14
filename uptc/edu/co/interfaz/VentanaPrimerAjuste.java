@@ -19,255 +19,340 @@ import java.util.concurrent.TimeUnit;
 
 public class VentanaPrimerAjuste extends JFrame {
 
-    private static final int MAX_MEMORIA = 1024;
-    private static final int LIMITE_PROCESOS = 100;
-    private List<BloqueMemoria> bloquesMemoria = new ArrayList<>();
-    private int procesosCreados = 0;
-    private char letraActual = 'A';
+	private static final int MAX_MEMORIA = 500;
+	private static final int LIMITE_PROCESOS = 100;
+	private List<BloqueMemoria> bloquesMemoria = new ArrayList<>();
+	private List<Proceso> procesosEspera = new ArrayList<Proceso>();
+	private int procesosCreados = 0;
+	private char letraActual = 'A';
+	private int memoriaOcupada = 0;
+	private int memoriaLibre = MAX_MEMORIA;
 
-    private JPanel memoriaPanel;
-    private JScrollPane scrollPane;
-    private ScheduledExecutorService scheduler;
-    private JButton reiniciarButton;
+	private JPanel memoriaPanel;
+	private JScrollPane scrollPane;
+	private ScheduledExecutorService scheduler;
+	private JButton reiniciarButton, pararButton;
+	private JTextField ocupadaTextField;
+	private JTextField libreTextField;
 
-    public VentanaPrimerAjuste() {
-        inicializarMemoria();
-        inicializarInterfaz();
-        asignarMemoriaPrimerAjuste();
-        actualizarEstadoMemoria();
+	public VentanaPrimerAjuste() {
+		inicializarMemoria();
+		inicializarInterfaz();
+		asignarMemoriaPrimerAjuste();
+		actualizarEstadoMemoria();
 
-        setSize(1500, 350);
-        setTitle("Primer Ajuste");
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setLocationRelativeTo(null);
-        setResizable(true);
-        setVisible(true);
+		setSize(1500, 400);
+		setTitle("Mejor Ajuste");
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		setLocationRelativeTo(null);
+		setResizable(true);
+		setVisible(true);
 
-        scheduler = Executors.newSingleThreadScheduledExecutor();
-        scheduler.scheduleAtFixedRate(this::asignarMemoriaPeriodicamente, 0, 2, TimeUnit.SECONDS);
+		scheduler = Executors.newSingleThreadScheduledExecutor();
+		scheduler.scheduleAtFixedRate(this::asignarMemoriaPeriodicamente, 0, 2, TimeUnit.SECONDS);
 
-        addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                reiniciarVentana();
-            }
-        });
-    }
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosed(WindowEvent e) {
+				reiniciarVentana();
+			}
+		});
+	}
 
-    private void inicializarMemoria() {
-        bloquesMemoria.clear();
-        bloquesMemoria.add(new BloqueMemoria(0, MAX_MEMORIA, false));
-    }
+	private void inicializarMemoria() {
+		bloquesMemoria.clear();
+		bloquesMemoria.add(new BloqueMemoria(0, MAX_MEMORIA, false));
+	}
 
-    private void asignarMemoriaPrimerAjuste() {
-        Random random = new Random();
+	private void asignarMemoriaPrimerAjuste() {
+		Random random = new Random();
 
-        if (procesosCreados < LIMITE_PROCESOS) {
-            int tamanoProceso = random.nextInt(128) + 1;
+		if (procesosCreados < LIMITE_PROCESOS) {
 
-            bloquesMemoria.sort(Comparator.comparingInt(BloqueMemoria::getInicio));
+			List<BloqueMemoria> listaBloques = bloquesMemoria;
+			listaBloques.sort(Comparator.comparingInt(BloqueMemoria::getInicio));
 
-            for (BloqueMemoria bloque : bloquesMemoria) {
-                if (!bloque.isAsignado() && bloque.gettamanno() >= tamanoProceso) {
-                    if (bloque.gettamanno() == tamanoProceso) {
-                        Proceso proceso = new Proceso("Proceso:" + letraActual, tamanoProceso, random.nextInt(7) + 4);
-                        bloque.setProceso(proceso);
-                        bloque.setAsignado(true);
+			for (BloqueMemoria bloque : listaBloques) {
+				if (!bloque.isAsignado()) {
+					if (!procesosEspera.isEmpty()) {
+						Proceso proceso = procesosEspera.get(0);
+						int tamannoProceso = proceso.getTamano();
 
-                        letraActual++;
-                        if (letraActual > 'Z') {
-                            letraActual = 'A';
-                        }
-                        procesosCreados++;
-                        break;
-                    }
-                    else {
-                        BloqueMemoria nuevoBloque = new BloqueMemoria(
-                                bloque.getInicio() + tamanoProceso,
-                                bloque.gettamanno() - tamanoProceso,
-                                false
-                        );
-                        BloqueMemoria bloqueAsignado = new BloqueMemoria(bloque.getInicio(), tamanoProceso, true);
+						if (bloque.gettamanno() > tamannoProceso) {
+							BloqueMemoria nuevoBloque = new BloqueMemoria(bloque.getInicio() + tamannoProceso,
+									bloque.gettamanno() - tamannoProceso, false);
+							BloqueMemoria bloqueAsignado = new BloqueMemoria(bloque.getInicio(), tamannoProceso, true);
 
-                        Proceso proceso = new Proceso("Proceso:" + letraActual, tamanoProceso, random.nextInt(7) + 4);
-                        bloqueAsignado.setProceso(proceso);
-                        letraActual++;
-                        if (letraActual > 'Z') {
-                            letraActual = 'A';
-                        }
-                        procesosCreados++;
+							bloqueAsignado.setProceso(proceso);
 
-                        bloquesMemoria.remove(bloque);
-                        bloquesMemoria.add(bloqueAsignado);
-                        bloquesMemoria.add(nuevoBloque);
-                        break;
-                    }
-                }
-            }
-        }
-    }
+							System.out.println(
+									"proceso de la lista " + proceso.getNombre() + " tamanno " + proceso.getTamano());
+							procesosCreados++;
+							memoriaOcupada += tamannoProceso;
+							memoriaLibre -= tamannoProceso;
 
-    private void asignarMemoriaPeriodicamente() {
-        if (!Thread.currentThread().isInterrupted() && isVisible()) {
-            liberarMemoria();
-            SwingUtilities.invokeLater(() -> {
-            	actualizarEstadoMemoria();
-            });
-            try {
-            	Thread.sleep(2000);
-            } catch (InterruptedException e) {
-            	// TODO Auto-generated catch block
-            	e.printStackTrace();
-            }
-            asignarMemoriaPrimerAjuste();
-        }
-    }
+							procesosEspera.remove(0);
+							bloquesMemoria.remove(bloque);
+							bloquesMemoria.add(bloqueAsignado);
+							bloquesMemoria.add(nuevoBloque);
+							break;
+						} else if (bloque.gettamanno() == tamannoProceso) {
+							bloque.setProceso(proceso);
+							bloque.setAsignado(true);
+							memoriaOcupada += tamannoProceso;
+							memoriaLibre -= tamannoProceso;
 
-    private void actualizarEstadoMemoria() {
-        memoriaPanel.removeAll();
+							procesosCreados++;
+							break;
+						}
+					} else {
+						int tamanoProceso = random.nextInt(128) + 1;
+						if (bloque.gettamanno() == tamanoProceso) {
 
-        int anchoTotal = 0;
+							Proceso proceso = new Proceso("Proceso:" + letraActual, tamanoProceso,
+									random.nextInt(7) + 4);
+							bloque.setProceso(proceso);
+							bloque.setAsignado(true);
+							memoriaOcupada += tamanoProceso;
+							memoriaLibre -= tamanoProceso;
 
-        for (BloqueMemoria bloque : bloquesMemoria) {
-            JPanel bloquePanel = new JPanel();
-            JPanel contenedorBloque = new JPanel();
-            JPanel instanciasPanel = new JPanel();
+							letraActual++;
+							if (letraActual > 'Z') {
+								letraActual = 'A';
+							}
+							procesosCreados++;
+							break;
+						} else if (tamanoProceso < bloque.gettamanno()) {
+							BloqueMemoria nuevoBloque = new BloqueMemoria(bloque.getInicio() + tamanoProceso,
+									bloque.gettamanno() - tamanoProceso, false);
+							BloqueMemoria bloqueAsignado = new BloqueMemoria(bloque.getInicio(), tamanoProceso, true);
 
-            bloquePanel.setPreferredSize(new Dimension(150, 150));
+							Proceso proceso = new Proceso("Proceso:" + letraActual, tamanoProceso,
+									random.nextInt(7) + 4);
+							bloqueAsignado.setProceso(proceso);
+							letraActual++;
+							if (letraActual > 'Z') {
+								letraActual = 'A';
+							}
+							procesosCreados++;
+							memoriaOcupada += tamanoProceso;
+							memoriaLibre -= tamanoProceso;
 
-            if (bloque.isAsignado()) {
-                int tiempoRestante = bloque.getProceso().getTiempoRestante();
-                bloque.getProceso().setTiempoRestante(tiempoRestante - 1);
+							bloquesMemoria.remove(bloque);
+							bloquesMemoria.add(bloqueAsignado);
+							bloquesMemoria.add(nuevoBloque);
+							break;
+						} else {
+							Proceso proceso = new Proceso("Proceso:" + letraActual, tamanoProceso,
+									random.nextInt(7) + 4);
+							procesosEspera.add(proceso);
+							
+							System.out.println("Proceso " + proceso.getNombre() + " annadido a lista de espera de tamanno " + proceso.getTamano());
 
-                int tamanoOcupado = bloque.getProceso().getTamano();
-                int tamanoLibre = bloque.gettamanno() - tamanoOcupado;
+							letraActual++;
+							if (letraActual > 'Z') {
+								letraActual = 'A';
+							}
+							procesosCreados++;
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
 
-                String nombre = bloque.getProceso().getNombre();
+	private void asignarMemoriaPeriodicamente() {
+		if (!Thread.currentThread().isInterrupted() && isVisible()) {
+			liberarMemoria();
+			SwingUtilities.invokeLater(this::actualizarEstadoMemoria);
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			asignarMemoriaPrimerAjuste();
+		}
+	}
 
-                JLabel ocupadoLabel = new JLabel("O: " + tamanoOcupado);
-                JLabel libreLabel = new JLabel("L: " + tamanoLibre);
-                JLabel instanciasLabel = new JLabel("instancias: " + tiempoRestante);
-                JLabel nombreProcesoLabel = new JLabel(nombre);
+	private void actualizarEstadoMemoria() {
+		memoriaPanel.removeAll();
 
-                JLabel tamanoProcesoLabel = new JLabel("Tamaño Proceso: " + tamanoOcupado);
-                JLabel tamanoBloqueLabel = new JLabel("Tamaño Bloque: " + bloque.gettamanno());
+		int anchoTotal = 0;
 
-                JPanel ocupadoPanel = new JPanel();
-                ocupadoPanel.setBackground(Color.RED);
-                ocupadoPanel.setPreferredSize(new Dimension(150, (tamanoOcupado * 150) / bloque.gettamanno()));
-                ocupadoPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-                ocupadoPanel.add(ocupadoLabel);
+		for (BloqueMemoria bloque : bloquesMemoria) {
+			JPanel bloquePanel = new JPanel();
+			JPanel contenedorBloque = new JPanel();
+			JPanel instanciasPanel = new JPanel();
 
-                JPanel librePanel = new JPanel();
-                librePanel.setBackground(Color.GREEN);
-                librePanel.setPreferredSize(new Dimension(150, (tamanoLibre * 150) / bloque.gettamanno()));
-                librePanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-                librePanel.add(libreLabel);
+			bloquePanel.setPreferredSize(new Dimension(75, 75));
 
-                instanciasPanel = new JPanel();
-                instanciasPanel.setLayout(new BorderLayout());
-                instanciasPanel.setPreferredSize(new Dimension(150, 30));
-                instanciasPanel.add(instanciasLabel, BorderLayout.NORTH);
-                instanciasPanel.add(nombreProcesoLabel, BorderLayout.SOUTH);
+			if (bloque.isAsignado()) {
+				int tiempoRestante = bloque.getProceso().getTiempoRestante();
+				bloque.getProceso().setTiempoRestante(tiempoRestante - 1);
 
-                bloquePanel.setLayout(new BorderLayout());
-                bloquePanel.add(ocupadoPanel, BorderLayout.NORTH);
-                bloquePanel.add(librePanel, BorderLayout.CENTER);
+				int tamanoOcupado = bloque.getProceso().getTamano();
+				int tamanoLibre = bloque.gettamanno() - tamanoOcupado;
 
-                JPanel tamanosPanel = new JPanel();
-                tamanosPanel.setLayout(new GridLayout(2, 1));
-                tamanosPanel.add(tamanoProcesoLabel);
-                tamanosPanel.add(tamanoBloqueLabel);
+				String nombre = bloque.getProceso().getNombre();
 
-                contenedorBloque.add(tamanosPanel, BorderLayout.SOUTH);
-            } else {
-                JLabel libreLabel = new JLabel("L: " + bloque.gettamanno());
-                bloquePanel.setBackground(Color.GREEN);
-                bloquePanel.setLayout(new BorderLayout());
-                bloquePanel.add(libreLabel, BorderLayout.CENTER);
-            }
+				JLabel ocupadoLabel = new JLabel("O: " + tamanoOcupado);
+				JLabel libreLabel = new JLabel("L: " + tamanoLibre);
+				JLabel instanciasLabel = new JLabel("instancias: " + tiempoRestante);
+				JLabel nombreProcesoLabel = new JLabel(nombre);
 
-            contenedorBloque.setLayout(new BorderLayout());
-            contenedorBloque.add(bloquePanel, BorderLayout.NORTH);
-            contenedorBloque.add(instanciasPanel, BorderLayout.SOUTH);
+				JLabel tamanoProcesoLabel = new JLabel("Tamaño Proceso: " + tamanoOcupado);
+				JLabel tamanoBloqueLabel = new JLabel("Tamaño Bloque: " + bloque.gettamanno());
 
-            memoriaPanel.add(contenedorBloque);
+				JPanel ocupadoPanel = new JPanel();
+				ocupadoPanel.setBackground(Color.RED);
+				ocupadoPanel.setPreferredSize(new Dimension(75, (tamanoOcupado * 75) / bloque.gettamanno()));
+				ocupadoPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+				ocupadoPanel.add(ocupadoLabel);
 
-            anchoTotal += bloquePanel.getPreferredSize().width;
-        }
+				JPanel librePanel = new JPanel();
+				librePanel.setBackground(Color.GREEN);
+				librePanel.setPreferredSize(new Dimension(75, (tamanoLibre * 75) / bloque.gettamanno()));
+				librePanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+				librePanel.add(libreLabel);
 
-        // Agregar botón "Reiniciar"
-        reiniciarButton = new JButton("Reiniciar");
-        reiniciarButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                reiniciarVentana();
-                VentanaPrimerAjuste.this.dispose();  // Cerrar la ventana actual
-                new VentanaPrimerAjuste();  // Abrir una nueva instancia de VentanaPrimerAjuste
-            }
-        });
-        memoriaPanel.add(reiniciarButton);
+				instanciasPanel = new JPanel();
+				instanciasPanel.setLayout(new BorderLayout());
+				instanciasPanel.setPreferredSize(new Dimension(75, 30));
+				instanciasPanel.add(instanciasLabel, BorderLayout.NORTH);
+				instanciasPanel.add(nombreProcesoLabel, BorderLayout.SOUTH);
 
-        memoriaPanel.setPreferredSize(new Dimension(anchoTotal, memoriaPanel.getPreferredSize().height));
+				bloquePanel.setLayout(new BorderLayout());
+				bloquePanel.add(ocupadoPanel, BorderLayout.NORTH);
+				bloquePanel.add(librePanel, BorderLayout.CENTER);
 
-        memoriaPanel.revalidate();
-        memoriaPanel.repaint();
-    }
+				JPanel tamanosPanel = new JPanel();
+				tamanosPanel.setLayout(new GridLayout(2, 1));
+				tamanosPanel.add(tamanoProcesoLabel);
+				tamanosPanel.add(tamanoBloqueLabel);
 
-    private void liberarMemoria() {
-        int tamanoProceso = (int) (Math.random() * 128) + 1;
+				contenedorBloque.add(tamanosPanel, BorderLayout.SOUTH);
+			} else {
+				JLabel libreLabel = new JLabel("L: " + bloque.gettamanno());
+				bloquePanel.setBackground(Color.GREEN);
+				bloquePanel.setLayout(new BorderLayout());
+				bloquePanel.add(libreLabel, BorderLayout.CENTER);
+			}
 
-        for (BloqueMemoria bloque : bloquesMemoria) {
-            if (bloque.isAsignado() && bloque.getProceso().getTiempoRestante() == 0) {
-                bloque.getProceso().setTamano(0);
-                bloque.setAsignado(false);
-            }
-        }
+			contenedorBloque.setLayout(new BorderLayout());
+			contenedorBloque.add(bloquePanel, BorderLayout.NORTH);
+			contenedorBloque.add(instanciasPanel, BorderLayout.SOUTH);
 
-        bloquesMemoria.sort(Comparator.comparingInt(BloqueMemoria::getInicio));
-        List<BloqueMemoria> nuevosBloques = new ArrayList<>();
-        BloqueMemoria bloqueAnterior = bloquesMemoria.get(0);
+			memoriaPanel.add(contenedorBloque);
 
-        for (int i = 1; i < bloquesMemoria.size(); i++) {
-            BloqueMemoria bloqueActual = bloquesMemoria.get(i);
+			anchoTotal += bloquePanel.getPreferredSize().width;
+		}
 
-            if (!bloqueAnterior.isAsignado() && !bloqueActual.isAsignado()) {
-                BloqueMemoria nuevoBloque = new BloqueMemoria(
-                        bloqueAnterior.getInicio(),
-                        bloqueAnterior.gettamanno() + bloqueActual.gettamanno(),
-                        false
-                );
-                bloqueAnterior = nuevoBloque;
-            } else {
-                nuevosBloques.add(bloqueAnterior);
-                bloqueAnterior = bloqueActual;
-            }
-        }
+		// Actualizar los cuadros de texto de la memoria ocupada y libre
+		ocupadaTextField.setText("Memoria Ocupada: " + memoriaOcupada);
+		libreTextField.setText("Memoria Libre: " + memoriaLibre);
 
-        nuevosBloques.add(bloqueAnterior);
-        bloquesMemoria = nuevosBloques;
-    }
+		memoriaPanel.setPreferredSize(new Dimension(anchoTotal, memoriaPanel.getPreferredSize().height));
 
-    private void reiniciarVentana() {
-        if (scheduler != null && !scheduler.isShutdown()) {
-            scheduler.shutdown();
-        }
+		memoriaPanel.revalidate();
+		memoriaPanel.repaint();
+	}
 
-        inicializarMemoria();
-        asignarMemoriaPrimerAjuste();
-        actualizarEstadoMemoria();
-        procesosCreados = 0;
-        letraActual = 'A';
-    }
+	private void liberarMemoria() {
+		int memoriaOcupadaAnterior = memoriaOcupada; // Guarda el valor anterior de memoria ocupada
+		int memoriaLibreAnterior = memoriaLibre; // Guarda el valor anterior de memoria libre
 
-    private void inicializarInterfaz() {
-        memoriaPanel = new JPanel();
-        memoriaPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 10));
-        scrollPane = new JScrollPane(memoriaPanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-        add(scrollPane, BorderLayout.CENTER);
-    }
+		for (BloqueMemoria bloque : bloquesMemoria) {
+			if (bloque.isAsignado() && bloque.getProceso().getTiempoRestante() == 0) {
+				int tamanoProceso = bloque.getProceso().getTamano();
+				bloque.getProceso().setTamano(0);
+				bloque.setAsignado(false);
+				memoriaOcupada -= tamanoProceso;
+				memoriaLibre += tamanoProceso;
+			}
+		}
 
-    public static void main(String[] args) {
-        new VentanaPrimerAjuste();
-    }
+		// Verifica si ha habido cambios en la memoria ocupada y libre
+		if (memoriaOcupadaAnterior != memoriaOcupada || memoriaLibreAnterior != memoriaLibre) {
+			System.out.println("Memoria ocupada anterior: " + memoriaOcupadaAnterior);
+			System.out.println("Memoria libre anterior: " + memoriaLibreAnterior);
+			System.out.println("Memoria ocupada actual: " + memoriaOcupada);
+			System.out.println("Memoria libre actual: " + memoriaLibre);
+		}
+
+		bloquesMemoria.sort(Comparator.comparingInt(BloqueMemoria::getInicio));
+		List<BloqueMemoria> nuevosBloques = new ArrayList<>();
+		BloqueMemoria bloqueAnterior = bloquesMemoria.get(0);
+
+		for (int i = 1; i < bloquesMemoria.size(); i++) {
+			BloqueMemoria bloqueActual = bloquesMemoria.get(i);
+
+			if (!bloqueAnterior.isAsignado() && !bloqueActual.isAsignado()) {
+				BloqueMemoria nuevoBloque = new BloqueMemoria(bloqueAnterior.getInicio(),
+						bloqueAnterior.gettamanno() + bloqueActual.gettamanno(), false);
+				bloqueAnterior = nuevoBloque;
+			} else {
+				nuevosBloques.add(bloqueAnterior);
+				bloqueAnterior = bloqueActual;
+			}
+		}
+
+		nuevosBloques.add(bloqueAnterior);
+		bloquesMemoria = nuevosBloques;
+	}
+
+	private void reiniciarVentana() {
+		if (scheduler != null && !scheduler.isShutdown()) {
+			scheduler.shutdown();
+		}
+
+		inicializarMemoria();
+		asignarMemoriaPrimerAjuste();
+		actualizarEstadoMemoria();
+		procesosCreados = 0;
+		letraActual = 'A';
+		memoriaOcupada = 0;
+		memoriaLibre = MAX_MEMORIA;
+	}
+	
+	private void pararSimulador() {
+		pararButton.setEnabled(false);
+		try {
+			Thread.sleep(4000);;
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		pararButton.setEnabled(true);
+	}
+
+	private void inicializarInterfaz() {
+		memoriaPanel = new JPanel();
+		memoriaPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 10));
+		scrollPane = new JScrollPane(memoriaPanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+				JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		add(scrollPane, BorderLayout.CENTER);
+
+		JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		ocupadaTextField = new JTextField("Memoria Ocupada: " + memoriaOcupada, 20);
+		ocupadaTextField.setEditable(false);
+		libreTextField = new JTextField("Memoria Libre: " + memoriaLibre, 20);
+		libreTextField.setEditable(false);
+		pararButton = new JButton("Esperar");
+		pararButton.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				pararSimulador();
+			}
+		});
+		
+		bottomPanel.add(ocupadaTextField);
+		bottomPanel.add(libreTextField);
+		bottomPanel.add(pararButton);
+		add(bottomPanel, BorderLayout.SOUTH);
+	}
+
+	public static void main(String[] args) {
+		new VentanaPrimerAjuste();
+	}
 }

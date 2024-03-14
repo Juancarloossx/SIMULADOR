@@ -39,18 +39,18 @@ public class InterfazPrincipal extends JFrame {
 
         gbc = new GridBagConstraints();
 
-        etiqueta = new JLabel("ELIGE UN MÉTODO:");
+        etiqueta = new JLabel("ELIGE UN METODO:");
         etiqueta.setHorizontalAlignment(SwingConstants.CENTER);
         Font nuevaFuente = etiqueta.getFont().deriveFont(Font.BOLD, 20);
         etiqueta.setFont(nuevaFuente);
 
-        botonEstatico = new JButton("Estático");
+        botonEstatico = new JButton("Estatico");
         botonEstatico.setBackground(new Color(0, 102, 204));
         botonEstatico.setForeground(Color.WHITE);
         botonEstatico.setPreferredSize(new Dimension(120, 30));
         botonEstatico.addActionListener(listener);
 
-        botonDinamico = new JButton("Dinámico");
+        botonDinamico = new JButton("Dinamico");
         botonDinamico.setBackground(new Color(0, 102, 204));
         botonDinamico.setForeground(Color.WHITE);
         botonDinamico.setPreferredSize(new Dimension(120, 30));
