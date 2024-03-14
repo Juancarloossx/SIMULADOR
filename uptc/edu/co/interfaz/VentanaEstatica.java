@@ -41,7 +41,7 @@ public class VentanaEstatica extends JFrame {
         inicializarMemoria();
         actualizarEstadoMemoria();
 
-        setSize(800, 150);
+        setSize(800, 250);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
@@ -56,8 +56,9 @@ public class VentanaEstatica extends JFrame {
                     while (!Thread.currentThread().isInterrupted() && isVisible()) {
                         liberarMemoria();
                         Thread.sleep(2000);
-                        asignarMemoria();
                         actualizarEstadoMemoria();
+                        asignarMemoria();
+                        Thread.sleep(2000);
                     }
                 } catch (InterruptedException ex) {
                     // Restaura la bandera de interrupción y sale del hilo
@@ -226,5 +227,8 @@ public class VentanaEstatica extends JFrame {
 
     }
 
+    public static void main(String[] args) {
+		new VentanaEstatica();
+	}
 
 }
