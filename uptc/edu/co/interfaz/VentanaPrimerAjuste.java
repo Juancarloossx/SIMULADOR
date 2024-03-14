@@ -42,7 +42,7 @@ public class VentanaPrimerAjuste extends JFrame {
 		actualizarEstadoMemoria();
 
 		setSize(1000, 400);
-		setTitle("Mejor Ajuste");
+		setTitle("Primer Ajuste");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setLocationRelativeTo(null);
 		setResizable(true);
