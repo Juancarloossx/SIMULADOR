@@ -316,14 +316,23 @@ public class VentanaPeorAjuste extends JFrame {
 	}
 	
 	private void pararSimulador() {
-		pararButton.setEnabled(false);
-		try {
-			Thread.sleep(4000);;
-		} catch (InterruptedException e) {
-			e.printStackTrace();
+		if (!scheduler.isShutdown()) {
+			scheduler.shutdown();
+			pararButton.setText("Reanudar");
+			JOptionPane.showMessageDialog(null,"La fragmentación externa es de: "+ obtenerFragmentacion());
+			}
+		else {
+			scheduler = Executors.newSingleThreadScheduledExecutor();
+			scheduler.scheduleAtFixedRate(this::asignarMemoriaPeriodicamente, 0, 2, TimeUnit.SECONDS);
+			pararButton.setText("Esperar");
 		}
-		pararButton.setEnabled(true);
 	}
+
+	private int obtenerFragmentacion() {
+		
+		return (memoriaLibre - bloquesMemoria.get(bloquesMemoria.size()-1).gettamanno());
+	}
+
 
 	private void inicializarInterfaz() {
 		memoriaPanel = new JPanel();
